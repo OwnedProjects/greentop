@@ -14,6 +14,7 @@ export class CashaccledgerComponent implements OnInit {
   cashopenbal: any = null;
   cashexpenditures: any = null;
   cashacctrans: any = null;
+  cashsalesreceipts: any = null;
   custmakepays: any = null;
   cashpays: any = null;
   supprecpays: any = null;
@@ -44,7 +45,16 @@ export class CashaccledgerComponent implements OnInit {
                         // this.filterData();
                         this.getAllCashPaymentsToSuppliers()
                           .then((cashpays) => {
-                            this.filterData();
+                            // this.filterData();
+                            this.getAllCashReceiptsFromCustomers()
+                              .then((cashrecepts) => {
+                                this.filterData();
+                              })
+                              .catch((err) => {
+                                alert(
+                                  "Cannot get CASH Payments from to Customers"
+                                );
+                              });
                           })
                           .catch((err) => {
                             alert("Cannot get CASH Payments made to suppliers");
@@ -228,6 +238,27 @@ export class CashaccledgerComponent implements OnInit {
     });
     return promise;
   }
+  // Payments - Get Cash Payments from Customers
+  getAllCashReceiptsFromCustomers() {
+    const _this = this;
+    const promise = new Promise((resolve, reject) => {
+      const urldata =
+        "fromdt=" + _this.finanyr.fromdt + "&todt=" + _this.finanyr.todt;
+      _this._rest
+        .getData("sales_payments.php", "getAllCashOrderReceipts", urldata)
+        .subscribe(
+          (Response) => {
+            _this.cashsalesreceipts =
+              Response && Response["data"] ? Response["data"] : null;
+            resolve(_this.cashsalesreceipts);
+          },
+          (err) => {
+            reject(err);
+          }
+        );
+    });
+    return promise;
+  }
 
   // Receipts - Get Receive Payments From Supplier
   getAllReceiveSupplierPayments() {
@@ -330,6 +361,21 @@ export class CashaccledgerComponent implements OnInit {
           particular: `${this.cashpays[i].particulars} Purchase Account - <span class="text-primary">${this.cashpays[i].name}<span>`,
           deposit: 0,
           payments: this.cashpays[i].amount,
+          balance: 0,
+        };
+        tmparr.push(tmpobj);
+      }
+    }
+
+    //Payments - Receipt Customer CASH payments
+    if (this.cashsalesreceipts && this.cashsalesreceipts.length > 0) {
+      for (let i = 0; i < this.cashsalesreceipts.length; i++) {
+        let tmpobj = {
+          id: tmparr.length,
+          dated: this.cashsalesreceipts[i].paydate,
+          particular: `${this.cashsalesreceipts[i].particulars} - <span class="text-primary">${this.cashsalesreceipts[i].name}<span>`,
+          deposit: this.cashsalesreceipts[i].amount,
+          payments: 0,
           balance: 0,
         };
         tmparr.push(tmpobj);

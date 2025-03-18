@@ -2,7 +2,10 @@
 //Create a connection
 header('Access-Control-Allow-Origin: *');
 // $conn = new mysqli("localhost", "assasate_gto", "Assasa@123", "assasate_greentop");
-$conn = new mysqli("localhost", "root", "", "greentop");
+// For some machines the conn will be $conn = new mysqli("localhost", "root", "", "greentop", 3306);
+
+$conn = new mysqli("127.0.0.1", "admin", "admin", "greentop", 3306);
+
 
 function write_log($log, $flag, $errorval){
     if (!file_exists('../../logs')) {

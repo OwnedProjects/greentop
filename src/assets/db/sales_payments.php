@@ -390,4 +390,42 @@ if($action == "getAllFinancialYears"){
 	echo json_encode($data);
 }
 
+if($action == "getAllCashOrderReceipts"){
+	$headers = apache_request_headers();
+	authenticate($headers);
+    $fromdt= $_GET["fromdt"];
+    $todt= $_GET["todt"];
+	$sql = "SELECT op.`orderpayid`, op.`paydate`, op.`clientid`, op.`amount`, op.`paymodeid`, op.`particulars`, pm.`paymode`, cm.`name` FROM `order_payments` op, `paymode_master` pm, `client_master` cm WHERE op.`paymodeid`=pm.`paymodeid` AND op.`clientid`=cm.`clientid` AND pm.`paymode`='CASH' AND op.`paydate` BETWEEN '$fromdt' AND '$todt'";
+	$result = $conn->query($sql);
+	$tmp = array();
+	if($result){
+        $i=0;
+		while($row = $result->fetch_array())
+		{
+			$tmp[$i]['orderpayid'] = $row['orderpayid'];
+			$tmp[$i]['paydate'] = $row['paydate'];
+			$tmp[$i]['clientid'] = $row['clientid'];
+			$tmp[$i]['amount'] = $row['amount'];
+			$tmp[$i]['paymodeid'] = $row['paymodeid'];
+			$tmp[$i]['particulars'] = $row['particulars'];
+			$tmp[$i]['paymode'] = $row['paymode'];
+			$tmp[$i]['name'] = $row['name'];
+			$i++;
+		}
+		$data["status"] = 200;
+		$data["data"] = $tmp;
+		$log  = "File: sales_payments.php - Method: ".$action.PHP_EOL;
+		write_log($log, "success", NULL);
+		header(' ', true, 200);
+	}
+	else{
+		$data["status"] = 204;
+		$log  = "File: sales_payments.php - Method: ".$action.PHP_EOL.
+		"Error message: ".$conn->error.PHP_EOL.
+		"Data: ".json_encode($data).PHP_EOL;
+		write_log($log, "error", $conn->error);
+		header(' ', true, 204);
+	}
+	echo json_encode($data);
+}
 ?>
